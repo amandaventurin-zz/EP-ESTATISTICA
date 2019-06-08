@@ -1,0 +1,38 @@
+while(iterador < 100) {
+  # A cada iteração, é criado um novo vetor que segue a dist. lognormal com media e dp iguais as do vetor de dados
+  valoresTeste = fdaX(rlnorm(x, mean(x), sd(x)))
+  
+  # Percorrendo todos os valores de cada vetor
+  for(i in length(valoresX)) {
+    # Aplicando a diferença de Kullback Liebler
+    if(abs(valoresX[i] - valoresTeste[i]) > 0.05) {
+      # Se a distância entre os dois valores excede um epsilon (o escolido foi 0.05)
+      deuCerto = FALSE # o teste falha
+      break;
+    }
+  }
+  
+  # Se o teste foi bem sucedido
+  if(deuCerto) {
+    # Aumenta a contagem de certos
+    contagemCertos = contagemCertos + 1
+  }
+  
+  # Incrementando o iterador do while
+  iterador = iterador + 1
+  
+  # Resetando as variáveis utilizadas no escopo do while (em cada teste)
+  valoresTeste = NULL
+  i = 0
+  deuCerto = TRUE
+}
+
+# Se a porcentagem de testes bem-sucedidos é inferior a 90%, consideramos que a distr. não é adequada ao conjunto de dados
+if(contagemCertos <= 90) {
+  print("A distribuição lognormal não se adequa ao conjunto de dados")
+} else {
+  print("A distribuição lognormal se adequa ao conjunto de dados")
+}
+
+# Informamos ao usuário a porcentagem de testes bem-sucedidos
+print(c(contagemCertos, "%"))
