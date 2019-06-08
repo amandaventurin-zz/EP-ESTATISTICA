@@ -1,0 +1,9 @@
+
+# p = 0
+# for(i in x) { 
+#   if(i > mean(x)) {
+#     p = p + 1
+#   }
+# }
+# p = p/length(x)
+# p
