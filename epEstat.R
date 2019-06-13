@@ -1,4 +1,4 @@
-Ôªø# Escolhendo e carregando o arquivo em .csv
+# Escolhendo e carregando o arquivo em .csv
 data = read.csv(file.choose(), header = T, sep = ",")
 
 # Carregar apenas a variavel de interesse 
@@ -9,19 +9,19 @@ decdf = function(y, baseline, treatment) ecdf(baseline)(y) - ecdf(treatment)(y)
 # Criando um iterador para o while
 iterador = 0
 
-# O boolean servir√° para determinar se a distribui√ß√£o em quest√£o se adequa ou n√£o ao conjunto de dados
+# O boolean servir· para determinar se a distribuiÁ„o em quest„o se adequa ou n„o ao conjunto de dados
 deuCerto = TRUE
 
-# Conta quantos testes foram bem-sucedidos para a distribui√ß√£o em quest√£o
+# Conta quantos testes foram bem-sucedidos para a distribuiÁ„o em quest„o
 contagemCertos = 0
 
-# METODO DE MONTE CARLO: Os testes s√£o repetidos diversas vezes. O numero escolhido foi 100
+# METODO DE MONTE CARLO: Os testes s„o repetidos diversas vezes. O numero escolhido foi 100
 
-#DISTRIBUI√á√ÉO NORMAL
+#DISTRIBUI«√O NORMAL
 
-# A primeira dsitribui√ß√£o testada √© a distribui√ß√£o normal
+# A primeira dsitribuiÁ„o testada È a distribuiÁ„o normal
 while(iterador < 100) {
-  # A cada itera√ß√£o, √© criado um novo vetor que segue a dist. normal com a media e desvio padrao de X
+  # A cada iteraÁ„o, È criado um novo vetor que segue a dist. normal com a media e desvio padrao de X
   funcaoTeste = rnorm(x, mean(x), sd(x))
   
   pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
@@ -29,9 +29,9 @@ while(iterador < 100) {
   
   # Percorrendo todos os valores de cada vetor
   for(i in length(diferencas)) {
-    # Aplicando a diferen√ßa de Kullback Liebler
+    # Aplicando a diferenÁa de Kullback Liebler
     if(abs(diferencas[i]) > 0.05) {
-      # Se a dist√¢ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
+      # Se a dist‚ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
       deuCerto = FALSE # o teste falha
       break;
     }
@@ -46,31 +46,31 @@ while(iterador < 100) {
   # Incrementando o iterador do while
   iterador = iterador + 1
   
-  # Resetando as vari√°veis utilizadas no escopo do while (em cada teste)
+  # Resetando as vari·veis utilizadas no escopo do while (em cada teste)
   funcaoTeste = NULL
   i = 0
   deuCerto = TRUE
 }
 
-# Se a porcentagem de testes bem-sucedidos √© inferior a 90%, consideramos que a distr. n√£o √© adequada ao conjunto de dados
+# Se a porcentagem de testes bem-sucedidos È inferior a 90%, consideramos que a distr. n„o È adequada ao conjunto de dados
 if(contagemCertos <= 90) {
-  print("A distribui√ß√£o normal n√£o se adequa ao conjunto de dados")
+  print("A distribuiÁ„o normal n„o se adequa ao conjunto de dados")
 } else {
-  print("A distribui√ß√£o normal se adequa ao conjunto de dados")
+  print("A distribuiÁ„o normal se adequa ao conjunto de dados")
 }
 
-# Informamos ao usu√°rio a porcentagem de testes bem-sucedidos
+# Informamos ao usu·rio a porcentagem de testes bem-sucedidos
 print(c(contagemCertos, "%"))
 
-# Resetando as vari√°veis utilizadas em cada distribui√ß√£o
+# Resetando as vari·veis utilizadas em cada distribuiÁ„o
 iterador = 0
 contagemCertos = 0
 deuCerto = TRUE
 
-#DISTRIBUI√á√ÉO DE POISSON
+#DISTRIBUI«√O DE POISSON
 
 while(iterador < 100) {
-  # A cada itera√ß√£o, √© criado um novo vetor que segue a dist. de poisson com lambda = Var(x)
+  # A cada iteraÁ„o, È criado um novo vetor que segue a dist. de poisson com lambda = Var(x)
   funcaoTeste = rpois(length(x), var(x))
   
   pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
@@ -78,9 +78,9 @@ while(iterador < 100) {
   
   # Percorrendo todos os valores de cada vetor
   for(i in length(diferencas)) {
-    # Aplicando a diferen√ßa de Kullback Liebler
+    # Aplicando a diferenÁa de Kullback Liebler
     if(abs(diferencas[i]) > 0.05) {
-      # Se a dist√¢ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
+      # Se a dist‚ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
       deuCerto = FALSE # o teste falha
       break;
     }
@@ -95,28 +95,28 @@ while(iterador < 100) {
   # Incrementando o iterador do while
   iterador = iterador + 1
   
-  # Resetando as vari√°veis utilizadas no escopo do while (em cada teste)
+  # Resetando as vari·veis utilizadas no escopo do while (em cada teste)
   funcaoTeste = NULL
   i = 0
   deuCerto = TRUE
 }
 
-# Se a porcentagem de testes bem-sucedidos √© inferior a 90%, consideramos que a distr. n√£o √© adequada ao conjunto de dados
+# Se a porcentagem de testes bem-sucedidos È inferior a 90%, consideramos que a distr. n„o È adequada ao conjunto de dados
 if(contagemCertos <= 90) {
-  print("A distribui√ß√£o de poisson n√£o se adequa ao conjunto de dados")
+  print("A distribuiÁ„o de poisson n„o se adequa ao conjunto de dados")
 } else {
-  print("A distribui√ß√£o de poisson se adequa ao conjunto de dados")
+  print("A distribuiÁ„o de poisson se adequa ao conjunto de dados")
 }
 
-# Informamos ao usu√°rio a porcentagem de testes bem-sucedidos
+# Informamos ao usu·rio a porcentagem de testes bem-sucedidos
 print(c(contagemCertos, "%"))
 
-# Resetando as vari√°veis utilizadas em cada distribui√ß√£o
+# Resetando as vari·veis utilizadas em cada distribuiÁ„o
 iterador = 0
 contagemCertos = 0
 deuCerto = TRUE
 
-#DISTRIBUI√á√ÉO UNIFORME
+#DISTRIBUI«√O UNIFORME
 
 while(iterador < 100) {
   
@@ -126,9 +126,9 @@ while(iterador < 100) {
   diferencas = decdf(pontos, x, funcaoTeste)
   
   for(i in length(diferencas)) {
-    # Aplicando a diferen√ßa de Kullback Liebler
+    # Aplicando a diferenÁa de Kullback Liebler
     if(abs(diferencas[i]) > 0.05) {
-      # Se a dist√¢ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
+      # Se a dist‚ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
       deuCerto = FALSE # o teste falha
       break;
     }
@@ -143,28 +143,28 @@ while(iterador < 100) {
   # Incrementando o iterador do while
   iterador = iterador + 1
   
-  # Resetando as vari√°veis utilizadas no escopo do while (em cada teste)
+  # Resetando as vari·veis utilizadas no escopo do while (em cada teste)
   funcaoTeste = NULL
   i = 0
   deuCerto = TRUE
 }
 
-# Se a porcentagem de testes bem-sucedidos √© inferior a 90%, consideramos que a distr. n√£o √© adequada ao conjunto de dados
+# Se a porcentagem de testes bem-sucedidos È inferior a 90%, consideramos que a distr. n„o È adequada ao conjunto de dados
 if(contagemCertos <= 90) {
-  print("A distribui√ß√£o uniforme n√£o se adequa ao conjunto de dados")
+  print("A distribuiÁ„o uniforme n„o se adequa ao conjunto de dados")
 } else {
-  print("A distribui√ß√£o uniforme se adequa ao conjunto de dados")
+  print("A distribuiÁ„o uniforme se adequa ao conjunto de dados")
 }
 
-# Informamos ao usu√°rio a porcentagem de testes bem-sucedidos
+# Informamos ao usu·rio a porcentagem de testes bem-sucedidos
 print(c(contagemCertos, "%"))
 
-# Resetando as vari√°veis utilizadas em cada distribui√ß√£o
+# Resetando as vari·veis utilizadas em cada distribuiÁ„o
 iterador = 0
 contagemCertos = 0
 deuCerto = TRUE
 
-#DISTRIBUI√á√ÉO EXPONENCIAL
+#DISTRIBUI«√O EXPONENCIAL
 
 while(iterador < 100) {
   funcaoTeste = rexp(length(x), 1/mean(x))
@@ -173,9 +173,9 @@ while(iterador < 100) {
   diferencas = decdf(pontos, x, funcaoTeste)
   
   for(i in length(diferencas)) {
-    # Aplicando a diferen√ßa de Kullback Liebler
+    # Aplicando a diferenÁa de Kullback Liebler
     if(abs(diferencas[i]) > 0.05) {
-      # Se a dist√¢ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
+      # Se a dist‚ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
       deuCerto = FALSE # o teste falha
       break;
     }
@@ -190,23 +190,23 @@ while(iterador < 100) {
   # Incrementando o iterador do while
   iterador = iterador + 1
   
-  # Resetando as vari√°veis utilizadas no escopo do while (em cada teste)
+  # Resetando as vari·veis utilizadas no escopo do while (em cada teste)
   funcaoTeste = NULL
   i = 0
   deuCerto = TRUE
 }
 
-# Se a porcentagem de testes bem-sucedidos √© inferior a 90%, consideramos que a distr. n√£o √© adequada ao conjunto de dados
+# Se a porcentagem de testes bem-sucedidos È inferior a 90%, consideramos que a distr. n„o È adequada ao conjunto de dados
 if(contagemCertos <= 90) {
-  print("A distribui√ß√£o exponencial n√£o se adequa ao conjunto de dados")
+  print("A distribuiÁ„o exponencial n„o se adequa ao conjunto de dados")
 } else {
-  print("A distribui√ß√£o exponencial se adequa ao conjunto de dados")
+  print("A distribuiÁ„o exponencial se adequa ao conjunto de dados")
 }
 
-# Informamos ao usu√°rio a porcentagem de testes bem-sucedidos
+# Informamos ao usu·rio a porcentagem de testes bem-sucedidos
 print(c(contagemCertos, "%"))
 
-# Resetando as vari√°veis utilizadas em cada distribui√ß√£o
+# Resetando as vari·veis utilizadas em cada distribuiÁ„o
 iterador = 0
 contagemCertos = 0
 deuCerto = TRUE
