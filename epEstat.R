@@ -1,216 +1,211 @@
 # Escolhendo e carregando o arquivo em .csv
-data = read.csv(file.choose(), header = T, sep = ",")
+data = read.csv2(file.choose(), header = T, sep = ",")
 
 # Carregar apenas a variavel de interesse 
-x = data$comprimento_petala
+x = data[,21]
 
-# Criando uma funcao que calcula a diferenca entre duas fdas
+# Essa funcao determina se o valor eh discreto ou nao, retornando um boolean
+discreto = function(valor) {
+  if(round(valor) != valor) {
+      return(FALSE)
+  } else {
+    return(TRUE)
+  }
+}
+
+# Essa funcao aplica discreto() para todos os valores de um vetor
+ehDiscreto = function(x) {
+  i = 1
+  while(i <= length(x)) {
+    if(!discreto(x[i])) {
+      return(FALSE)
+    }
+    i = i + 1
+  }
+  return(TRUE)
+}
+ 
+# Criando uma funcao que calcula a diferenca entre duas fdas, e retorna um double
 decdf = function(y, baseline, treatment) ecdf(baseline)(y) - ecdf(treatment)(y)
 
-# Criando um iterador para o while
-iterador = 0
-
-# O boolean determina se a distribuicao em questao se adequa ou nao ao conjunto de dados
-deuCerto = TRUE
-
-# Conta quantos testes foram bem-sucedidos para a distribuicao em questao
-contagemCertos = 0
-
-# METODO DE MONTE CARLO: Os testes sao repetidos diversas vezes. O numero escolhido foi 100
-
-#DISTRIBUICAO NORMAL
-
-# A primeira dsitribuicao testada eh a distribuicao normal
-while(iterador < 100) {
-  # A cada iteracao, eh criado um novo vetor que segue a dist. normal com a media e desvio padrao de X
-  funcaoTeste = rnorm(x, mean(x), sd(x))
+# Essa funcao serve para determinar a melhor distribuicao se o vetor for continuo, e nao retorna nenhum valor
+melhorDistContinua = function(x) {
+  iterador = 0 # Criando um iterador para o while
+  deuCerto = TRUE # Determina se um teste foi bem sucedido ou nao
   
-  # 
-  pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
-  diferencas = decdf(pontos, x, funcaoTeste)
+  # METODO DE MONTE CARLO: Os testes sao repetidos diversas vezes. O numero escolhido foi 100
   
-  # Percorrendo todos os valores de cada vetor
-  for(i in length(diferencas)) {
-    # Aplicando a diferen?a de Kullback Liebler
-    if(abs(diferencas[i]) > 0.05) {
-      # Se a dist?ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
-      deuCerto = FALSE # o teste falha
-      break;
+  #DISTRIBUICAO NORMAL
+  contagemCertosNormal = 0 # Determina quantos testes foram bem sucedidos na dist. normal
+  while(iterador < 100) {
+    # A cada iteracao, eh criado um novo vetor que segue a dist. normal com a media e desvio padrao de X
+    funcaoTeste = rnorm(x, mean(x), sd(x))
+    
+    # Eh definido um vetor de valores continuos para percorrer todos os pontos da fda
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    
+    # Calcula a diferenca entre todos os pontos e armazena num vetor
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    # Percorrendo todos os valores do vetor
+    for(i in length(diferencas)) {
+      # Aplicando a diferenca de Kullback Liebler
+      if(abs(diferencas[i]) > 0.05) {
+        # Se a distancia entre os dois valores excede um epsilon (o escolido foi 0.05)
+        deuCerto = FALSE # o teste falha
+        break;
+      }
     }
-  }
-  
-  # Se o teste foi bem sucedido
-  if(deuCerto) {
-    # Aumenta a contagem de certos
-    contagemCertos = contagemCertos + 1
-  }
-  
-  # Incrementando o iterador do while
-  iterador = iterador + 1
-  
-  # Resetando as vari?veis utilizadas no escopo do while (em cada teste)
-  funcaoTeste = NULL
-  i = 0
-  deuCerto = TRUE
-}
-
-# Se a porcentagem de testes bem-sucedidos ? inferior a 90%, consideramos que a distr. n?o ? adequada ao conjunto de dados
-if(contagemCertos <= 90) {
-  print("A distribui??o normal n?o se adequa ao conjunto de dados")
-} else {
-  print("A distribui??o normal se adequa ao conjunto de dados")
-}
-
-# Informamos ao usu?rio a porcentagem de testes bem-sucedidos
-print(c(contagemCertos, "%"))
-
-# Resetando as vari?veis utilizadas em cada distribui??o
-iterador = 0
-contagemCertos = 0
-deuCerto = TRUE
-
-#DISTRIBUI??O DE POISSON
-
-while(iterador < 100) {
-  # A cada itera??o, ? criado um novo vetor que segue a dist. de poisson com lambda = Var(x)
-  funcaoTeste = rpois(length(x), var(x))
-  
-  pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
-  diferencas = decdf(pontos, x, funcaoTeste)
-  
-  # Percorrendo todos os valores de cada vetor
-  for(i in length(diferencas)) {
-    # Aplicando a diferen?a de Kullback Liebler
-    if(abs(diferencas[i]) > 0.05) {
-      # Se a dist?ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
-      deuCerto = FALSE # o teste falha
-      break;
+    
+    # Se o teste foi bem sucedido
+    if(deuCerto) {
+      # Aumenta a contagem de certos
+      contagemCertosNormal = contagemCertosNormal + 1
     }
+    
+    # Incrementando o iterador do while
+    iterador = iterador + 1
+    
+    # Resetando as variaveis utilizadas no escopo do while (em cada teste)
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
   }
   
-  # Se o teste foi bem sucedido
-  if(deuCerto) {
-    # Aumenta a contagem de certos
-    contagemCertos = contagemCertos + 1
-  }
-  
-  # Incrementando o iterador do while
-  iterador = iterador + 1
-  
-  # Resetando as vari?veis utilizadas no escopo do while (em cada teste)
-  funcaoTeste = NULL
-  i = 0
+  # Resetando as variaveis utilizadas em cada distribuicao
+  iterador = 0
   deuCerto = TRUE
-}
-
-# Se a porcentagem de testes bem-sucedidos ? inferior a 90%, consideramos que a distr. n?o ? adequada ao conjunto de dados
-if(contagemCertos <= 90) {
-  print("A distribui??o de poisson n?o se adequa ao conjunto de dados")
-} else {
-  print("A distribui??o de poisson se adequa ao conjunto de dados")
-}
-
-# Informamos ao usu?rio a porcentagem de testes bem-sucedidos
-print(c(contagemCertos, "%"))
-
-# Resetando as vari?veis utilizadas em cada distribui??o
-iterador = 0
-contagemCertos = 0
-deuCerto = TRUE
-
-#DISTRIBUI??O UNIFORME
-
-while(iterador < 100) {
   
-  funcaoTeste  = runif(length(x), min(x), max(x))
-  
-  pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
-  diferencas = decdf(pontos, x, funcaoTeste)
-  
-  for(i in length(diferencas)) {
-    print(i)
-    print(diferencas[i])
-    # Aplicando a diferen?a de Kullback Liebler
-    if(abs(diferencas[i]) != 0) {
-      # Se a dist?ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
-      deuCerto = FALSE # o teste falha
-      break;
+  #DISTRIBUICAO UNIFORME
+  contagemCertosUniforme = 0
+  while(iterador < 100) {
+    funcaoTeste  = runif(length(x), min(x), max(x))
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      if(abs(diferencas[i]) > 0.05) {
+        deuCerto = FALSE
+        break;
+      }
     }
-  }
   
-  # Se o teste foi bem sucedido
-  if(deuCerto) {
-    # Aumenta a contagem de certos
-    contagemCertos = contagemCertos + 1
-  }
-  
-  # Incrementando o iterador do while
-  iterador = iterador + 1
-  
-  # Resetando as vari?veis utilizadas no escopo do while (em cada teste)
-  funcaoTeste = NULL
-  i = 0
-  deuCerto = TRUE
-}
-
-# Se a porcentagem de testes bem-sucedidos ? inferior a 90%, consideramos que a distr. n?o ? adequada ao conjunto de dados
-if(contagemCertos <= 90) {
-  print("A distribui??o uniforme n?o se adequa ao conjunto de dados")
-} else {
-  print("A distribui??o uniforme se adequa ao conjunto de dados")
-}
-
-# Informamos ao usu?rio a porcentagem de testes bem-sucedidos
-print(c(contagemCertos, "%"))
-
-# Resetando as vari?veis utilizadas em cada distribui??o
-iterador = 0
-contagemCertos = 0
-deuCerto = TRUE
-
-#DISTRIBUI??O EXPONENCIAL
-while(iterador < 100) {
-  funcaoTeste = rexp(length(x), rate=1/mean(x))
- 
-  pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
-  diferencas = decdf(pontos, x, funcaoTeste)
-  
-  for(i in length(diferencas)) {
-    # Aplicando a diferen?a de Kullback Liebler
-    if(abs(diferencas[i]) > 0.05) {
-      # Se a dist?ncia entre os dois valores excede um epsilon (o escolido foi 0.05)
-      deuCerto = FALSE # o teste falha
-      break;
+    if(deuCerto) {
+      contagemCertosUniforme = contagemCertosUniforme + 1
     }
+    
+    iterador = iterador + 1
+    
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
   }
   
-  # Se o teste foi bem sucedido
-  if(deuCerto) {
-    # Aumenta a contagem de certos
-    contagemCertos = contagemCertos + 1
-  }
-  
-  # Incrementando o iterador do while
-  iterador = iterador + 1
-  
-  # Resetando as vari?veis utilizadas no escopo do while (em cada teste)
-  funcaoTeste = NULL
-  i = 0
+  iterador = 0
   deuCerto = TRUE
+  
+  #DISTRIBUI??O EXPONENCIAL
+  contagemCertosExponencial = 0
+  while(iterador < 100) {
+    funcaoTeste = rexp(length(x), rate=1/mean(x))
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      if(abs(diferencas[i]) > 0.05) {
+        deuCerto = FALSE
+        break;
+      }
+    }
+    
+    if(deuCerto) {
+      contagemCertosExponencial = contagemCertosExponencial + 1
+    }
+    
+    iterador = iterador + 1
+    
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
+  }
+  
+  iterador = 0
+  deuCerto = TRUE
+  
+  # Agora, criaremos um ranking das distribuicoes mais provaveis
+  ranking = sort(c(contagemCertosNormal, contagemCertosUniforme, contagemCertosExponencial), decreasing = TRUE)
+  
+  indice = 1
+  while(indice <= length(ranking)) {
+    if(ranking[indice] == contagemCertosNormal) {
+      print(c(indice,"- Normal:",contagemCertosNormal,"% de chances"), quote = F)
+    } else if(ranking[indice] == contagemCertosUniforme) {
+      print(c(indice,"- Uniforme:",contagemCertosUniforme,"% de chances"), quote = F)
+    } else if(ranking[indice] == contagemCertosExponencial) {
+      print(c(indice,"- Exponencial:",contagemCertosExponencial,"% de chances"), quote = F)
+    }
+    indice = indice + 1
+  }
+  rm(indice)
 }
 
-# Se a porcentagem de testes bem-sucedidos ? inferior a 90%, consideramos que a distr. n?o ? adequada ao conjunto de dados
-if(contagemCertos <= 90) {
-  print("A distribui??o exponencial n?o se adequa ao conjunto de dados")
-} else {
-  print("A distribui??o exponencial se adequa ao conjunto de dados")
+# Essa funcao determina a melhor distribuicao para vetores discretos, tambem nao retorna nenhum valor
+melhorDistDiscreta = function(x) {
+  iterador = 0 # Criando um iterador para o while
+  deuCerto = TRUE # Determina se um teste foi bem sucedido ou nao
+  
+  #DISTRIBUICAO DE POISSON
+  contagemCertosPoisson = 0
+  while(iterador < 100) {
+    # A cada iteracao, eh criado um novo vetor que segue a dist. de poisson com lambda = Var(x)
+    funcaoTeste = rpois(length(x), var(x))
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)))
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      if(abs(diferencas[i]) > 0.05) {
+        deuCerto = FALSE
+        break;
+      }
+    }
+    
+    if(deuCerto) {
+      contagemCertosPoisson = contagemCertosPoisson + 1
+    }
+    
+    iterador = iterador + 1
+    
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
+  }
+  
+  iterador = 0
+  deuCerto = TRUE
+  
+  # Agora, criaremos um ranking das distribuicoes mais provaveis
+  ranking = sort(c(contagemCertosPoisson), decreasing = TRUE)
+  
+  indice = 1
+  while(indice <= length(ranking)) {
+    if(ranking[indice] == contagemCertosPoisson) {
+      print(c(indice,"- Poisson:",contagemCertosPoisson,"% de chances"), quote = F)
+    }
+    indice = indice + 1
+  }
+  rm(indice)
 }
 
-# Informamos ao usu?rio a porcentagem de testes bem-sucedidos
-print(c(contagemCertos, "%"))
-
-# Resetando as vari?veis utilizadas em cada distribui??o
-iterador = 0
-contagemCertos = 0
-deuCerto = TRUE
+# Essa funcao chama as funcoes certas para cada tipo de dados do vetor x
+ep = function(x) {
+  hist(x, probability = T)
+  lines(density(x), col="red")
+  if(ehDiscreto(x)) {
+    melhorDistDiscreta(x)
+  } else {
+    melhorDistContinua(x)
+  }
+  summary(x)
+}
+ep(x)
 
