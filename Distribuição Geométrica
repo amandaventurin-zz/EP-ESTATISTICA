@@ -1,17 +1,7 @@
-#Achando probabilidade da distribuição geométrica
 
-p = 0
-for(i in x) { 
-  if(i > mean(x)) {
-    p = p + 1
-  }
- }
- p = p/length(x)
-
- 
 #DISTRIBUIÇÃO GEOMÉTRICA
 while(iterador < 100) {
-  funcaoTeste = rgeom(length(x), p)
+  funcaoTeste = rgeom(length(x), 1/mean(x))
   
   pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
   diferencas = decdf(pontos, x, funcaoTeste)
