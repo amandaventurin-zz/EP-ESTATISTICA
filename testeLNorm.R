@@ -10,9 +10,10 @@ contagemCertosLogNormal = 0# Determina quantos testes foram bem sucedidos na dis
 varlog = 0
 meanlog = 0
 iterador = 0
+deuCerto = TRUE
 
 varlog = log(abs((var(x)/(mean(x)**2))-1), exp(1))
-meanlog = log(mean(x), exp(1)) - varlog/2
+meanlog = log(abs(mean(x)), exp(1)) - varlog/2
 
 decdf = function(y, baseline, treatment) ecdf(baseline)(y) - ecdf(treatment)(y)
 
@@ -24,7 +25,7 @@ while(iterador < 100) {
   pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
   
   # Calcula a diferenca entre todos os pontos e armazena num vetor
-  diferencas = decdf(pontos, x, funcaoTeste)
+  diferencas = decdf(pontos, rlnorm(x, meanlog, sqrt(abs(varlog))), funcaoTeste)
   
   # Percorrendo todos os valores do vetor
   for(i in length(diferencas)) {
