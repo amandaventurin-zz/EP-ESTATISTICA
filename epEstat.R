@@ -2,7 +2,7 @@
 data = read.csv2(file.choose(), header = T, sep = ",")
 
 # Carregar apenas a variavel de interesse 
-x = data[,21]
+x = data[,3]
 
 # Essa funcao determina se o valor eh discreto ou nao, retornando um boolean
 discreto = function(valor) {
@@ -33,11 +33,11 @@ melhorDistContinua = function(x) {
   iterador = 0 # Criando um iterador para o while
   deuCerto = TRUE # Determina se um teste foi bem sucedido ou nao
   
-  # METODO DE MONTE CARLO: Os testes sao repetidos diversas vezes. O numero escolhido foi 100
+  # METODO DE MONTE CARLO: Os testes sao repetidos diversas vezes. O numero escolhido foi 1000
   
   #DISTRIBUICAO NORMAL
   contagemCertosNormal = 0 # Determina quantos testes foram bem sucedidos na dist. normal
-  while(iterador < 100) {
+  while(iterador < 1000) {
     # A cada iteracao, eh criado um novo vetor que segue a dist. normal com a media e desvio padrao de X
     funcaoTeste = rnorm(x, mean(x), sd(x))
     
@@ -78,7 +78,7 @@ melhorDistContinua = function(x) {
   
   #DISTRIBUICAO UNIFORME
   contagemCertosUniforme = 0
-  while(iterador < 100) {
+  while(iterador < 1000) {
     funcaoTeste  = runif(length(x), min(x), max(x))
     pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
     diferencas = decdf(pontos, x, funcaoTeste)
@@ -104,9 +104,9 @@ melhorDistContinua = function(x) {
   iterador = 0
   deuCerto = TRUE
   
-  #DISTRIBUI??O EXPONENCIAL
+  #DISTRIBUICAO EXPONENCIAL
   contagemCertosExponencial = 0
-  while(iterador < 100) {
+  while(iterador < 1000) {
     funcaoTeste = rexp(length(x), rate=1/mean(x))
     pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
     diferencas = decdf(pontos, x, funcaoTeste)
@@ -132,17 +132,55 @@ melhorDistContinua = function(x) {
   iterador = 0
   deuCerto = TRUE
   
+  # DISTRIBUICAO GAMMA
+  contagemCertosGamma = 0
+  while(iterador < 1000) {
+    funcaoTeste = rgamma(length(x), shape = mean(x)**2/var(x), scale = var(x)/mean(x))
+    
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      # Aplicando a diferença de Kullback Liebler
+      if(abs(diferencas[i]) > 0.05) {
+        # Se a distância entre os dois valores excede um epsilon (o escolido foi 0.05)
+        deuCerto = FALSE # o teste falha
+        break;
+      }
+    }
+    
+    if(deuCerto) {
+      contagemCertosGamma = contagemCertosGamma + 1
+    }
+    
+    iterador = iterador + 1
+    
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
+  }
+  
   # Agora, criaremos um ranking das distribuicoes mais provaveis
-  ranking = sort(c(contagemCertosNormal, contagemCertosUniforme, contagemCertosExponencial), decreasing = TRUE)
+  ranking = sort(c(contagemCertosNormal, contagemCertosUniforme, contagemCertosExponencial, contagemCertosGamma), decreasing = TRUE)
+  
+  normal = FALSE
+  uniforme = FALSE
+  exponencial = FALSE
+  gamma = FALSE
   
   indice = 1
   while(indice <= length(ranking)) {
-    if(ranking[indice] == contagemCertosNormal) {
-      print(c(indice,"- Normal:",contagemCertosNormal,"% de chances"), quote = F)
-    } else if(ranking[indice] == contagemCertosUniforme) {
-      print(c(indice,"- Uniforme:",contagemCertosUniforme,"% de chances"), quote = F)
-    } else if(ranking[indice] == contagemCertosExponencial) {
-      print(c(indice,"- Exponencial:",contagemCertosExponencial,"% de chances"), quote = F)
+    if(ranking[indice] == contagemCertosNormal & !normal) {
+      print(c(indice,"- Normal:",contagemCertosNormal/10,"% de chances"), quote = F)
+      normal = TRUE
+    } else if(ranking[indice] == contagemCertosUniforme & !uniforme) {
+      print(c(indice,"- Uniforme:",contagemCertosUniforme/10,"% de chances"), quote = F)
+      uniforme = TRUE
+    } else if(ranking[indice] == contagemCertosExponencial & !exponencial) {
+      print(c(indice,"- Exponencial:",contagemCertosExponencial/10,"% de chances"), quote = F)
+      exponencial = TRUE
+    } else if(ranking[indice] == contagemCertosGamma & !gamma) {
+      print(c(indice, "- Gamma:", contagemCertosGamma/10, "% de chances"), quote = F)
     }
     indice = indice + 1
   }
@@ -156,7 +194,7 @@ melhorDistDiscreta = function(x) {
   
   #DISTRIBUICAO DE POISSON
   contagemCertosPoisson = 0
-  while(iterador < 100) {
+  while(iterador < 1000) {
     # A cada iteracao, eh criado um novo vetor que segue a dist. de poisson com lambda = Var(x)
     funcaoTeste = rpois(length(x), var(x))
     pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)))
@@ -183,13 +221,83 @@ melhorDistDiscreta = function(x) {
   iterador = 0
   deuCerto = TRUE
   
+  #DISTRIBUICAO GEOMETRICA
+  contagemCertosGeometrica = 0
+  while(iterador < 1000) {
+    funcaoTeste = rgeom(length(x), 1/mean(x))
+    
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      # Aplicando a diferença de Kullback Liebler
+      if(abs(diferencas[i]) > 0.05) {
+        # Se a distância entre os dois valores excede um epsilon (o escolido foi 0.05)
+        deuCerto = FALSE # o teste falha
+        break;
+      }
+    }
+    
+    if(deuCerto) {
+      contagemCertosGeometrica = contagemCertosGeometrica + 1
+    }
+    
+    iterador = iterador + 1
+    
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
+  }
+  
+  iterador = 0
+  deuCerto = TRUE
+  
+  #DISTRIBUICAO BINOMIAL
+  contagemCertosBinomial = 0
+  while(iterador < 1000) {
+    funcaoTeste = rbinom(length(x), round((mean(x)*mean(x))/(mean(x) - var(x))), (mean(x) - var(x))/mean(x))
+    
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      # Aplicando a diferença de Kullback Liebler
+      if(abs(diferencas[i]) > 0.05) {
+        # Se a distância entre os dois valores excede um epsilon (o escolido foi 0.05)
+        deuCerto = FALSE # o teste falha
+        break;
+      }
+    }
+    
+    if(deuCerto) {
+      contagemCertosBinomial = contagemCertosBinomial + 1
+    }
+    
+    iterador = iterador + 1
+    
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
+  }
+  
   # Agora, criaremos um ranking das distribuicoes mais provaveis
-  ranking = sort(c(contagemCertosPoisson), decreasing = TRUE)
+  ranking = sort(c(contagemCertosPoisson, contagemCertosGeometrica, contagemCertosBinomial), decreasing = TRUE)
+  
+  poisson = FALSE
+  geometrica = FALSE
+  binomial = FALSE
   
   indice = 1
   while(indice <= length(ranking)) {
-    if(ranking[indice] == contagemCertosPoisson) {
-      print(c(indice,"- Poisson:",contagemCertosPoisson,"% de chances"), quote = F)
+    if(ranking[indice] == contagemCertosPoisson & !poisson) {
+      print(c(indice,"- Poisson:",contagemCertosPoisson/10,"% de chances"), quote = F)
+      poisson = TRUE
+    } else if(ranking[indice] == contagemCertosGeometrica & !geometrica) {
+      print(c(indice, "- Geometrica:", contagemCertosGeometrica/10, "% de chances"), quote = F)
+      geometrica = TRUE
+    } else if(ranking[indice] == contagemCertosBinomial & !binomial) {
+      print(c(indice, "- Binomial:", contagemCertosBinomial/10, "% de chances"), quote = F)
+      binomial = TRUE
     }
     indice = indice + 1
   }
