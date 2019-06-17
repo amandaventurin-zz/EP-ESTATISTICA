@@ -12,14 +12,14 @@ meanlog = 0
 iterador = 0
 deuCerto = TRUE
 
-varlog = log(abs((var(x)/(mean(x)**2))-1), exp(1))
-meanlog = log(abs(mean(x)), exp(1)) - varlog/2
+varlog = log(((var(x)/(mean(x)**2))+1), exp(1))
+meanlog = log((mean(x)), exp(1)) - varlog/2
 
 decdf = function(y, baseline, treatment) ecdf(baseline)(y) - ecdf(treatment)(y)
 
 while(iterador < 100) {
   # A cada iteracao, eh criado um novo vetor que segue a dist. normal com a media e desvio padrao de X
-  funcaoTeste = rlnorm(x, meanlog, sqrt(abs(varlog)))
+  funcaoTeste = rlnorm(x, meanlog, sqrt(varlog))
   
   # Eh definido um vetor de valores continuos para percorrer todos os pontos da fda
   pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
