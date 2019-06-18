@@ -1,0 +1,48 @@
+#DISTRIBUIÇÃO DE WEIBULL
+
+# Aplicamos fitdistr para descobrir os parametros
+library(MASS, lib.loc = "C:/Program Files/R/R-3.6.0/library")
+
+parametroShape = as.double(fitdistr(x, "weibull")$estimate[1])
+parametroScale = as.double(fitdistr(x, "weibull")$estimate[2])
+
+while(iterador < 100) {
+  funcaoTeste = rweibull(x, parametroShape, parametroScale)
+  
+  pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+  diferencas = decdf(pontos, x, funcaoTeste)
+  
+  for(i in length(diferencas)) {
+    # Aplicando a diferença de Kullback Liebler
+    if(abs(diferencas[i]) > 0.05) {
+      # Se a distância entre os dois valores excede um epsilon (o escolido foi 0.05)
+      deuCerto = FALSE # o teste falha
+      break;
+    }
+  }
+  
+  # Se o teste foi bem sucedido
+  if(deuCerto) {
+    # Aumenta a contagem de certos
+    contagemCertos = contagemCertos + 1
+  }
+  
+  # Incrementando o iterador do while
+  iterador = iterador + 1
+  
+  # Resetando as variáveis utilizadas no escopo do while (em cada teste)
+  funcaoTeste = NULL
+  i = 0
+  deuCerto = TRUE
+}
+
+# Se a porcentagem de testes bem-sucedidos é inferior a 90%, consideramos que a distr. não é adequada ao conjunto de dados
+if(contagemCertos <= 90) {
+  print("A distribuição de Weibull não se adequa ao conjunto de dados")
+} else {
+  print("A distribuição de Weibull se adequa ao conjunto de dados")
+}
+
+# Informamos ao usuário a porcentagem de testes bem-sucedidos
+print(c(contagemCertos, "%"))
+
