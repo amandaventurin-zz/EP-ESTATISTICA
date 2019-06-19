@@ -1,5 +1,5 @@
 # Escolhendo e carregando o arquivo em .csv
-data = read.csv2(file.choose(), header = T, sep = ",")
+data = read.csv(file.choose(), header = T, sep = ",")
 
 # Carregar apenas a variavel de interesse 
 x = data[,3]
@@ -160,13 +160,54 @@ melhorDistContinua = function(x) {
     deuCerto = TRUE
   }
   
+  iterador = 0
+  deuCerto = TRUE
+  
+  #DISTRIBUIÇÃO DE WEIBULL
+  contagemCertosWeibull = 0
+  # Aplicamos fitdistr para descobrir os parametros
+  library(MASS, lib.loc = "C:/Program Files/R/R-3.6.0/library")
+  
+  parametroShape = as.double(fitdistr(x, "weibull")$estimate[1])
+  parametroScale = as.double(fitdistr(x, "weibull")$estimate[2])
+  
+  while(iterador < 1000) {
+    funcaoTeste = rweibull(x, parametroShape, parametroScale)
+    
+    pontos = seq(from=max(min(funcaoTeste), min(x)), to=min(max(x), max(funcaoTeste)), by=0.01)
+    diferencas = decdf(pontos, x, funcaoTeste)
+    
+    for(i in length(diferencas)) {
+      # Aplicando a diferença de Kullback Liebler
+      if(abs(diferencas[i]) > 0.05) {
+        # Se a distância entre os dois valores excede um epsilon (o escolido foi 0.05)
+        deuCerto = FALSE # o teste falha
+        break;
+      }
+    }
+    # Se o teste foi bem sucedido
+    if(deuCerto) {
+      # Aumenta a contagem de certos
+      contagemCertosWeibull = contagemCertosWeibull + 1
+    }
+    
+    # Incrementando o iterador do while
+    iterador = iterador + 1
+    
+    # Resetando as variáveis utilizadas no escopo do while (em cada teste)
+    funcaoTeste = NULL
+    i = 0
+    deuCerto = TRUE
+  }
+  
   # Agora, criaremos um ranking das distribuicoes mais provaveis
-  ranking = sort(c(contagemCertosNormal, contagemCertosUniforme, contagemCertosExponencial, contagemCertosGamma), decreasing = TRUE)
+  ranking = sort(c(contagemCertosNormal, contagemCertosUniforme, contagemCertosExponencial, contagemCertosGamma, contagemCertosWeibull), decreasing = TRUE)
   
   normal = FALSE
   uniforme = FALSE
   exponencial = FALSE
   gamma = FALSE
+  weibull = FALSE
   
   indice = 1
   while(indice <= length(ranking)) {
@@ -181,6 +222,8 @@ melhorDistContinua = function(x) {
       exponencial = TRUE
     } else if(ranking[indice] == contagemCertosGamma & !gamma) {
       print(c(indice, "- Gamma:", contagemCertosGamma/10, "% de chances"), quote = F)
+    } else if(ranking[indice] == contagemCertosWeibull & !weibull) {
+      print(c(indice, "- Weibull:", contagemCertosWeibull/10, "% de chances"), quote = F)
     }
     indice = indice + 1
   }
@@ -317,3 +360,26 @@ ep = function(x) {
 }
 ep(x)
 
+# TENTATIVA UNIFORME:
+
+a = 0
+contagens = c()
+while(a <= length(x)) {
+  i = a + 1
+  contagem = 0
+  while(i <= a + round(length(freq)/10)) {
+    contagem = contagem + freq[i]
+    i = i + 1
+  }
+  contagens = c(contagens, contagem)
+  rm(contagem)
+  a = a + round(length(freq)/10)
+}
+
+for(i in contagens) {
+  for(j in contagens) {
+    if(abs(i - j) > 10) {
+      print("Nao se adequa") 
+    }
+  }
+}
