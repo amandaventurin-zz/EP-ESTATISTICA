@@ -1,0 +1,17 @@
+#DISTRIBUIÇÃO POWERLAW
+
+y = sort(x)
+z = 1 - ecdf(x)(sort(x))
+
+y = y[1:length(y)-1]
+z = z[1:length(z)-1]
+
+a = log(y,10)
+b = log(z,10)
+if(abs(cor(a,b)) >=0.9){
+  print("A distribuição Lei de Potência se adequa ao conjunto de dados")
+  print(c(format(abs(cor(a,b)) * 100, digits =2, nsmall = 0, decimal.mark = "."), "%"))
+}else{
+  print("A distribuição Lei de Potência não se adequa ao conjunto de dados")
+  print(c(format(abs(cor(a,b)) * 100, digits =2, nsmall = 0, decimal.mark = "."), "%"))
+}
