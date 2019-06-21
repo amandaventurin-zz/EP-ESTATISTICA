@@ -2,7 +2,7 @@
 data = read.csv(file.choose(), header = T, sep = ",")
 
 # Carregar apenas a variavel de interesse 
-x = data[,3]
+x = data[,1]
 
 # Essa funcao determina se o valor eh discreto ou nao, retornando um boolean
 discreto = function(valor) {
